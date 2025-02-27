@@ -123,7 +123,7 @@ def train_neural_network():
             print(current_error)
             error.append(current_error)
 
-    print("Entrenamiento completado.")
+    print("Entrenamiento completado exitosamente.")
 
 # Evitar ejecución automática al importar
 if __name__ == "__main__":
