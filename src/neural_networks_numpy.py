@@ -1,89 +1,88 @@
-# Importación de bibliotecas necesarias
-import numpy as np  # Biblioteca para operaciones matemáticas y manipulación de arreglos numéricos
-import matplotlib.pyplot as plt  # Biblioteca para la generación de gráficos
-from sklearn.datasets import make_gaussian_quantiles  # Función para generar datos distribuidos en clusters gaussianos
+import numpy as np  # Importar la biblioteca para cálculos numéricos
+import matplotlib.pyplot as plt  # Importar la biblioteca para graficar
+from sklearn.datasets import make_gaussian_quantiles  # Importar función para generar datos de clasificación
 
-# Definición de la función principal para entrenar la red neuronal
 def train_neural_network():
     """
-    Función que genera datos, entrena una red neuronal con forward y backpropagation
-    usando únicamente NumPy, y muestra la evolución del error durante el entrenamiento.
+    Función principal para entrenar la red neuronal y visualizar los resultados.
     """
+    
+    def create_dataset(N=1000):
+        """
+        Genera un conjunto de datos de clasificación con dos clases.
+        """
+        gaussian_quantiles = make_gaussian_quantiles(
+            mean=None,  # Media de los datos (automática)
+            cov=0.1,  # Varianza de los datos
+            n_samples=N,  # Número de muestras a generar
+            n_features=2,  # Número de características por muestra
+            n_classes=2,  # Número de clases
+            shuffle=True,  # Barajar los datos
+            random_state=None  # No se fija una semilla para aleatoriedad
+        )
+        X, Y = gaussian_quantiles  # Separar características y etiquetas
+        Y = Y[:, np.newaxis]  # Convertir etiquetas a matriz columna
+        return X, Y
 
-    # Crear dataset con dos clases distribuidas en forma gaussiana
-    N = 1000  # Número de muestras
-    X, Y = make_gaussian_quantiles(mean=None, cov=0.1, n_samples=N, n_features=2, n_classes=2, 
-                                   shuffle=True, random_state=None)
-    Y = Y[:, np.newaxis]  # Ajustar la forma de Y para que sea una matriz de una columna
-
-    # Mostrar dimensiones de los datos
-    print(f"X Shape: {X.shape}")  # (1000, 2) -> 1000 muestras con 2 características cada una
-    print(f"Y Shape: {Y.shape}")  # (1000, 1) -> 1000 etiquetas, cada una con un solo valor (0 o 1)
-
-    # Graficar los datos generados
-    plt.scatter(X[:, 0], X[:, 1], c=Y, s=40, cmap=plt.cm.Spectral)
-
-    # ------------------------ Definición de funciones auxiliares ------------------------
-
-    # Función de activación sigmoide
     def sigmoid(x, derivate=False):
+        """
+        Función de activación sigmoide.
+        """
         if derivate:
-            return np.exp(-x) / (np.exp(-x) + 1) ** 2  # Derivada de la sigmoide
+            return np.exp(-x) / (np.exp(-x) + 1)**2  # Derivada de la sigmoide
         else:
-            return 1 / (1 + np.exp(-x))  # Función sigmoide
+            return 1 / (1 + np.exp(-x))  # Cálculo de la sigmoide
 
-    # Función de activación ReLU
     def relu(x, derivate=False):
+        """
+        Función de activación ReLU.
+        """
         if derivate:
-            x[x <= 0] = 0  # Derivada es 0 para valores negativos
-            x[x > 0] = 1   # Derivada es 1 para valores positivos
+            x[x <= 0] = 0  # La derivada es 0 para valores negativos
+            x[x > 0] = 1  # La derivada es 1 para valores positivos
             return x
         else:
-            return np.maximum(0, x)  # Devuelve x si x > 0, de lo contrario 0
+            return np.maximum(0, x)  # Devuelve el máximo entre 0 y x
 
-    # Función de pérdida (Error cuadrático medio - MSE)
     def mse(y, y_hat, derivate=False):
+        """
+        Función de pérdida: Error cuadrático medio.
+        """
         if derivate:
             return (y_hat - y)  # Derivada del MSE
         else:
-            return np.mean((y_hat - y) ** 2)  # Cálculo del error cuadrático medio
+            return np.mean((y_hat - y)**2)  # Cálculo del MSE
 
-    # ------------------------ Inicialización de parámetros de la red ------------------------
-
-    # Función para inicializar los pesos y sesgos de la red
     def initialize_parameters_deep(layers_dims):
-        parameters = {}
-        L = len(layers_dims)  # Número de capas de la red
-        for l in range(0, L - 1):
-            parameters['W' + str(l + 1)] = (np.random.rand(layers_dims[l], layers_dims[l + 1]) * 2) - 1
-            parameters['b' + str(l + 1)] = (np.random.rand(1, layers_dims[l + 1]) * 2) - 1
+        """
+        Inicializa los pesos y sesgos de la red neuronal.
+        """
+        parameters = {}  # Diccionario para almacenar parámetros
+        L = len(layers_dims)  # Número de capas
+        for l in range(0, L-1):
+            parameters['W' + str(l+1)] = (np.random.rand(layers_dims[l], layers_dims[l+1]) * 2) - 1  # Pesos
+            parameters['b' + str(l+1)] = (np.random.rand(1, layers_dims[l+1]) * 2) - 1  # Sesgos
         return parameters
 
-    # ------------------------ Entrenamiento de la red neuronal ------------------------
-
-    # Propagación hacia adelante y hacia atrás (backpropagation)
     def train(x_data, y_data, learning_rate, params, training=True):
         """
-        Función que ejecuta la propagación hacia adelante y el proceso de backpropagation si está en modo entrenamiento.
+        Ejecuta la propagación hacia adelante y, si está habilitado, el entrenamiento de la red.
         """
+        params['A0'] = x_data  # Entrada a la red neuronal
 
-        # Forward Propagation
-        params['A0'] = x_data
+        params['Z1'] = np.matmul(params['A0'], params['W1']) + params['b1']  # Cálculo de la primera capa
+        params['A1'] = relu(params['Z1'])  # Aplicación de ReLU
 
-        params['Z1'] = np.matmul(params['A0'], params['W1']) + params['b1']
-        params['A1'] = relu(params['Z1'])
+        params['Z2'] = np.matmul(params['A1'], params['W2']) + params['b2']  # Cálculo de la segunda capa
+        params['A2'] = relu(params['Z2'])  # Aplicación de ReLU
 
-        params['Z2'] = np.matmul(params['A1'], params['W2']) + params['b2']
-        params['A2'] = relu(params['Z2'])
+        params['Z3'] = np.matmul(params['A2'], params['W3']) + params['b3']  # Cálculo de la tercera capa
+        params['A3'] = sigmoid(params['Z3'])  # Aplicación de sigmoide
 
-        params['Z3'] = np.matmul(params['A2'], params['W3']) + params['b3']
-        params['A3'] = sigmoid(params['Z3'])  # Capa de salida con función sigmoide
-
-        output = params['A3']  # Resultado de la red
+        output = params['A3']  # Salida final de la red
 
         if training:
-            # Backpropagation - Cálculo de gradientes
-
+            # Cálculo del error y propagación hacia atrás
             params['dZ3'] = mse(y_data, output, True) * sigmoid(params['A3'], True)
             params['dW3'] = np.matmul(params['A2'].T, params['dZ3'])
 
@@ -93,39 +92,40 @@ def train_neural_network():
             params['dZ1'] = np.matmul(params['dZ2'], params['W2'].T) * relu(params['A1'], True)
             params['dW1'] = np.matmul(params['A0'].T, params['dZ1'])
 
-            # Gradient Descent - Ajuste de pesos
-            params['W3'] = params['W3'] - params['dW3'] * learning_rate
-            params['W2'] = params['W2'] - params['dW2'] * learning_rate
-            params['W1'] = params['W1'] - params['dW1'] * learning_rate
+            # Actualización de pesos y sesgos usando gradiente descendente
+            params['W3'] -= params['dW3'] * learning_rate
+            params['W2'] -= params['dW2'] * learning_rate
+            params['W1'] -= params['dW1'] * learning_rate
 
-            params['b3'] = params['b3'] - (np.mean(params['dW3'], axis=0, keepdims=True)) * learning_rate
-            params['b2'] = params['b2'] - (np.mean(params['dW2'], axis=0, keepdims=True)) * learning_rate
-            params['b1'] = params['b1'] - (np.mean(params['dW1'], axis=0, keepdims=True)) * learning_rate
+            params['b3'] -= np.mean(params['dW3'], axis=0, keepdims=True) * learning_rate
+            params['b2'] -= np.mean(params['dW2'], axis=0, keepdims=True) * learning_rate
+            params['b1'] -= np.mean(params['dW1'], axis=0, keepdims=True) * learning_rate
 
-        return output
+        return output  # Devolver salida
 
-    # ------------------------ Configuración del modelo y entrenamiento ------------------------
+    # Crear el conjunto de datos
+    X, Y = create_dataset()
+    layers_dims = [2, 6, 10, 1]  # Definir la arquitectura de la red
+    params = initialize_parameters_deep(layers_dims)  # Inicializar parámetros
+    error = []  # Lista para almacenar errores
 
-    # Definir la estructura de la red neuronal
-    layers_dims = [2, 6, 10, 1]  # 2 neuronas de entrada, 2 capas ocultas (6 y 10 neuronas), 1 salida
+    for _ in range(50000):  # Entrenamiento de la red neuronal
+        output = train(X, Y, 0.001, params)  # Entrenamiento con tasa de aprendizaje 0.001
+        if _ % 50 == 0:
+            print(mse(Y, output))  # Imprimir error cada 50 iteraciones
+            error.append(mse(Y, output))  # Almacenar error en la lista
 
-    # Inicializar parámetros
-    params = initialize_parameters_deep(layers_dims)
+    # Graficar los datos de entrenamiento
+    plt.scatter(X[:, 0], X[:, 1], c=Y, s=40, cmap=plt.cm.Spectral)
 
-    # Almacenar el error en cada iteración
-    error = []
+    # Crear nuevos datos de prueba
+    data_test_x = (np.random.rand(1000, 2) * 2) - 1
+    data_test_y = train(data_test_x, X, 0.0001, params, training=False)
 
-    # Entrenamiento de la red neuronal
-    for epoch in range(50000):
-        output = train(X, Y, 0.001, params)
-        if epoch % 50 == 0:  # Cada 50 iteraciones, imprimir el error
-            current_error = mse(Y, output)
-            print(current_error)
-            error.append(current_error)
+    y = np.where(data_test_y > 0.5, 1, 0)  # Clasificar datos de prueba
+    plt.scatter(data_test_x[:, 0], data_test_x[:, 1], c=y, s=40, cmap=plt.cm.Spectral)
+    plt.show()  # Mostrar gráfica
 
-    print("Entrenamiento completado exitosamente.")
-
-# Evitar ejecución automática al importar
 if __name__ == "__main__":
-    train_neural_network()
+    train_neural_network()  # Ejecutar la función principal
 
