@@ -2,7 +2,7 @@
 
 ## Información del Proyecto
 **Materia:** Sistemas de visión artificial\
-**Tarea:** Tarea 2.3\
+**Tarea:** Tarea 2.3_Entrenamiento de red neuronal con Numpy\
 **Estudiante:** Luis Felipe Alvarado Resendez\
 **Fecha:** 03/03/2025  
 
