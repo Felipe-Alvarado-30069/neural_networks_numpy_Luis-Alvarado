@@ -2,7 +2,7 @@
 
 ## Información del Proyecto
 **Materia:** Sistemas de visión artificial\
-**Tarea:** Tarea 2.3_Entrenamiento de red neuronal usando Numpy\
+**Tarea:** Tarea 2.3\
 **Estudiante:** Luis Felipe Alvarado Resendez\
 **Fecha:** 03/03/2025  
 
@@ -107,4 +107,5 @@ Después de la ejecución, se debe observar cómo disminuye el error con el tiem
 
 ## Conclusión
 Este proyecto demuestra cómo se implementa una red neuronal desde cero utilizando NumPy, sin depender de frameworks avanzados. Se pueden mejorar los resultados ajustando los hiperparámetros, modificando la arquitectura o probando diferentes funciones de activación.
+
 
